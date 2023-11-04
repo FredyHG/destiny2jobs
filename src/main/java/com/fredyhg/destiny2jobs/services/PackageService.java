@@ -12,6 +12,8 @@ import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackageResponse;
 import com.fredyhg.destiny2jobs.repositories.MissionRepository;
 import com.fredyhg.destiny2jobs.repositories.CustomPackageRepository;
 import com.fredyhg.destiny2jobs.utils.ModelMappers;
+
+import com.fredyhg.destiny2jobs.repositories.PackageRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,9 @@ public class PackageService {
                 .toList();
     }
 
+    private final PackageRepository packageRepository;
+
+
     public void createCustomPackage(CustomPackagePostDto customPackagePostDtos, HttpServletRequest request, HttpServletResponse response) {
 
         UserModel user = userService.userExistsByToken(request);
@@ -75,6 +80,8 @@ public class PackageService {
                 .build();
 
         customPackageRepository.save(customPackageToBeSaved);
+
+        packageRepository.save(customPackageToBeSaved);
     }
 
     public double calcTotalPriceMission(CustomPackagePostDto customPackagePostDto){
@@ -111,7 +118,6 @@ public class PackageService {
                 })
                 .sum();
     }
-
 
     public void accept_service(HttpServletRequest request, HttpServletResponse response, UUID packageId) {
 

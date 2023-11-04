@@ -1,6 +1,7 @@
 package com.fredyhg.destiny2jobs.models;
 
 
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fredyhg.destiny2jobs.enums.Role;
 import com.fredyhg.destiny2jobs.security.token.Token;
@@ -61,7 +62,6 @@ public class UserModel implements UserDetails {
     @Column(name="role")
     @Enumerated(EnumType.STRING)
     private Role role;
-
     @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<CustomPackageModel> userPackages;
@@ -73,6 +73,7 @@ public class UserModel implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

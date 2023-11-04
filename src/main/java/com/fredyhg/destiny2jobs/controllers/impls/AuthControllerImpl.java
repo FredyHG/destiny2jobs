@@ -4,6 +4,7 @@ import com.fredyhg.destiny2jobs.controllers.AuthController;
 import com.fredyhg.destiny2jobs.models.AuthenticationResponse;
 import com.fredyhg.destiny2jobs.models.dtos.auth.AuthenticationDto;
 import com.fredyhg.destiny2jobs.services.AuthService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

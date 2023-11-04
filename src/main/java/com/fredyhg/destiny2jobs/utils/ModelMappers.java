@@ -72,7 +72,6 @@ public class ModelMappers {
     }
 
 
-
     public static CustomPackageResponse customPackageModelToCustomPackageResponse(CustomPackageModel customPackageModel){
 
 

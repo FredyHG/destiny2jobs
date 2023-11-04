@@ -36,7 +36,7 @@ public class CustomPackageModel {
     @Column(name = "final_price")
     private double price;
 
-    @ManyToOne(fetch = FetchType.LAZY )
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserModel user;
 
@@ -46,5 +46,6 @@ public class CustomPackageModel {
 
     @Enumerated(EnumType.STRING)
     public ServiceStatus status;
+
 
 }
