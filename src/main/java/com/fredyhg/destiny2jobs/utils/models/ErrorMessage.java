@@ -1,4 +1,4 @@
-package com.fredyhg.destiny2jobs.exceptions;
+package com.fredyhg.destiny2jobs.utils.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

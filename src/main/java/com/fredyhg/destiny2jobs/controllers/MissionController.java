@@ -16,7 +16,7 @@ public interface MissionController {
     @Operation(summary = "Create new mission", description = "To perform the request u need ADMIN role", tags = "ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Mission created successfully"),
-            @ApiResponse(responseCode = "400", description = "Mission already exists"),
+            @ApiResponse(responseCode = "409", description = "Mission already exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<ResponseMessage> createMission(MissionPostDto missionPostDto);
@@ -31,7 +31,7 @@ public interface MissionController {
     @Operation(summary = "Edit mission infos", description = "To perform the request u need ADMIN role", tags = "ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mission edited successfully"),
-            @ApiResponse(responseCode = "400", description = "Mission not exists"),
+            @ApiResponse(responseCode = "404", description = "Mission not exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<ResponseMessage> editMission(MissionPostDto missionPostDto);
@@ -39,7 +39,7 @@ public interface MissionController {
     @Operation(summary = "List all users", description = "To perform the request u need ADMIN role.", tags = "ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Mission deleted successfully"),
-            @ApiResponse(responseCode = "400", description = "Mission not exists"),
+            @ApiResponse(responseCode = "404", description = "Mission not exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<ResponseMessage> deleteMission(MissionDeleteDto missionDeleteDto);

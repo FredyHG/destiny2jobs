@@ -27,7 +27,7 @@ public class UserControllerImpl implements UserController {
 
     @PostMapping
     @Override
-    public ResponseEntity<AuthenticationResponse> createUsuario(@RequestBody UserPostDto user) throws InterruptedException {
+    public ResponseEntity<AuthenticationResponse> createUser(@RequestBody UserPostDto user){
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
     }
 

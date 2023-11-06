@@ -2,20 +2,21 @@ package com.fredyhg.destiny2jobs.services;
 
 import com.fredyhg.destiny2jobs.enums.Role;
 import com.fredyhg.destiny2jobs.enums.ServiceStatus;
-import com.fredyhg.destiny2jobs.exceptions.CustomPackageException;
-import com.fredyhg.destiny2jobs.exceptions.UserException;
-import com.fredyhg.destiny2jobs.models.MissionModel;
+import com.fredyhg.destiny2jobs.exceptions.customPackage.CustomPackageException;
+import com.fredyhg.destiny2jobs.exceptions.customPackage.CustomPackageNotFoundException;
+import com.fredyhg.destiny2jobs.exceptions.mission.CustomPackageAlreadyAccepted;
+import com.fredyhg.destiny2jobs.exceptions.user.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserNotAllowedException;
+import com.fredyhg.destiny2jobs.exceptions.user.WorkerNotAllowedException;
 import com.fredyhg.destiny2jobs.models.CustomPackageModel;
+import com.fredyhg.destiny2jobs.models.MissionModel;
 import com.fredyhg.destiny2jobs.models.UserModel;
 import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackagePostDto;
 import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackageResponse;
-import com.fredyhg.destiny2jobs.repositories.MissionRepository;
 import com.fredyhg.destiny2jobs.repositories.CustomPackageRepository;
+import com.fredyhg.destiny2jobs.repositories.MissionRepository;
 import com.fredyhg.destiny2jobs.utils.ModelMappers;
-
-import com.fredyhg.destiny2jobs.repositories.PackageRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PackageService {
+public class CustomPackageService {
 
 
     private final MissionRepository missionRepository;
@@ -35,6 +36,7 @@ public class PackageService {
     private final CustomPackageRepository customPackageRepository;
 
     private final UserService userService;
+
 
 
     public List<CustomPackageResponse> findAllPackage(){
@@ -55,16 +57,20 @@ public class PackageService {
                 .toList();
     }
 
-    private final PackageRepository packageRepository;
 
-
-    public void createCustomPackage(CustomPackagePostDto customPackagePostDtos, HttpServletRequest request, HttpServletResponse response) {
+    public void createCustomPackage(CustomPackagePostDto customPackagePostDtos, HttpServletRequest request) {
 
         UserModel user = userService.userExistsByToken(request);
 
-        if(user.getRole() == Role.ROLE_WORKER){
+        Optional<CustomPackageModel> userHasPackagePending = customPackageRepository.findPendingPackage(user);
+
+        if(userHasPackagePending.isPresent())
+            throw new CustomPackageException("User already has a pending package");
+
+
+        if(user.getRole() == Role.ROLE_WORKER)
             throw new UserException("Worker cannot create a package.");
-        }
+
 
         List<MissionModel> listOfMissions = customPackagePostDtos.getMissions()
                 .stream()
@@ -80,8 +86,47 @@ public class PackageService {
                 .build();
 
         customPackageRepository.save(customPackageToBeSaved);
+    }
 
-        packageRepository.save(customPackageToBeSaved);
+    public void accept_service(HttpServletRequest request, UUID packageId) {
+
+        Optional<CustomPackageModel> packageExist = customPackageRepository.findById(packageId);
+
+        if(packageExist.isEmpty())
+            throw new CustomPackageNotFoundException("Custom Package not found");
+
+        if(packageExist.get().getWorker() != null)
+            throw new CustomPackageAlreadyAccepted("This package has already been accepted");
+
+
+        UserModel worker = userService.userExistsByToken(request);
+
+        packageExist.get().setWorker(worker);
+        packageExist.get().setStatus(ServiceStatus.STARTED);
+
+        customPackageRepository.save(packageExist.get());
+    }
+
+    public void finish_service(HttpServletRequest request, UUID packageID) {
+
+        Optional<CustomPackageModel> packageExist = customPackageRepository.findById(packageID);
+
+        if(packageExist.isEmpty())
+            throw new CustomPackageNotFoundException("Custom Package not found");
+
+
+        UserModel worker = userService.userExistsByToken(request);
+
+        if(worker.getRole() == Role.ROLE_USER)
+            throw new CustomPackageException("User does not have permission to close a package");
+
+        if(packageExist.get().getWorker() != worker)
+            throw new WorkerNotAllowedException("You are not allowed to finish someone else's package");
+
+        packageExist.get().setStatus(ServiceStatus.FINISH);
+
+        customPackageRepository.save(packageExist.get());
+
     }
 
     public double calcTotalPriceMission(CustomPackagePostDto customPackagePostDto){
@@ -119,20 +164,21 @@ public class PackageService {
                 .sum();
     }
 
-    public void accept_service(HttpServletRequest request, HttpServletResponse response, UUID packageId) {
+    public void close_service(HttpServletRequest request, UUID packageID) {
 
+        Optional<CustomPackageModel> packageExist = customPackageRepository.findById(packageID);
 
-        Optional<CustomPackageModel> packageExist = customPackageRepository.findById(packageId);
+        if(packageExist.isEmpty())
+            throw new CustomPackageNotFoundException("Custom Package not found");
 
-        if(packageExist.isEmpty()){
-            throw new CustomPackageException("Custom Package not found");
-        }
+        UserModel user = userService.userExistsByToken(request);
 
-        UserModel worker = userService.userExistsByToken(request);
+        if(user.getRole() == Role.ROLE_WORKER)
+            throw new CustomPackageException("User does not have permission to close a package");
 
-        packageExist.get().setWorker(worker);
-        packageExist.get().setStatus(ServiceStatus.STARTED);
+        if(!packageExist.get().getUser().equals(user))
+            throw new UserNotAllowedException("You can't close someone else's package");
 
-        customPackageRepository.save(packageExist.get());
+        customPackageRepository.delete(packageExist.get());
     }
 }

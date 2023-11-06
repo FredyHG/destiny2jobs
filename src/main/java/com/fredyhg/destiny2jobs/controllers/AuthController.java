@@ -17,7 +17,7 @@ public interface AuthController {
     @Operation(summary = "Authentication user", description = "Anyone can make this request")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
-            @ApiResponse(responseCode = "400", description = "User credencials error"),
+            @ApiResponse(responseCode = "400", description = "User credentials error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<AuthenticationResponse> authenticate(AuthenticationDto authenticationDto);
@@ -25,7 +25,7 @@ public interface AuthController {
     @Operation(summary = "Authentication user", description = "Anyone can make this request")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
-            @ApiResponse(responseCode = "400", description = "User credencials error"),
+            @ApiResponse(responseCode = "400", description = "User credentials error"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     void refresToken(HttpServletRequest request, HttpServletResponse response);

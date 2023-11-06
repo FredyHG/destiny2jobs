@@ -12,7 +12,7 @@ public interface CardController {
     @Operation(summary = "Create new account", description = "Worker can make this request.", tags = "WORKER")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Card created successfully"),
-            @ApiResponse(responseCode = "400", description = "Char already exists"),
+            @ApiResponse(responseCode = "409", description = "Char already exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<ResponseMessage> createCard(CardPostDto card);

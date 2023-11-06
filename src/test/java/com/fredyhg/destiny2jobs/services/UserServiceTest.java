@@ -1,6 +1,6 @@
 package com.fredyhg.destiny2jobs.services;
 
-import com.fredyhg.destiny2jobs.exceptions.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserException;
 import com.fredyhg.destiny2jobs.models.UserModel;
 import com.fredyhg.destiny2jobs.models.dtos.user.UserGetDto;
 import com.fredyhg.destiny2jobs.models.dtos.user.UserPostDto;

@@ -21,10 +21,10 @@ public interface UserController {
     @Operation(summary = "Create new account", description = "Anyone can make this request.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
-            @ApiResponse(responseCode = "400", description = "Email already exists"),
+            @ApiResponse(responseCode = "409", description = "Email already exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
-    ResponseEntity<AuthenticationResponse> createUsuario(UserPostDto usuario) throws InterruptedException;
+    ResponseEntity<AuthenticationResponse> createUser(UserPostDto user);
 
     @Operation(summary = "List all users", description = "To perform the request u need ADMIN role.", tags = "ADMIN")
     @ApiResponses(value = {
@@ -36,7 +36,7 @@ public interface UserController {
     @Operation(summary = "Delete user", description = "To perform the request u need ADMIN role.", tags = "ADMIN")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User deleted successfully"),
-            @ApiResponse(responseCode = "400", description = "User not exists"),
+            @ApiResponse(responseCode = "404", description = "User not exists"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
     ResponseEntity<ResponseMessage> deleteUser(UUID uuid);

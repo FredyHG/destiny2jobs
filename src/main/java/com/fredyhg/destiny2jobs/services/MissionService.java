@@ -1,6 +1,7 @@
 package com.fredyhg.destiny2jobs.services;
 
-import com.fredyhg.destiny2jobs.exceptions.MissionException;
+import com.fredyhg.destiny2jobs.exceptions.mission.MissionAlreadyException;
+import com.fredyhg.destiny2jobs.exceptions.mission.MissionNotFoundException;
 import com.fredyhg.destiny2jobs.models.MissionModel;
 import com.fredyhg.destiny2jobs.models.dtos.mission.MissionDeleteDto;
 import com.fredyhg.destiny2jobs.models.dtos.mission.MissionGetDto;
@@ -24,11 +25,7 @@ public class MissionService {
 
     public void createMission(MissionPostDto missionPostDto){
 
-        Optional<MissionModel> missionExists = missionRepository.findByMissionName(missionPostDto.getMissionName());
-
-        if(missionExists.isEmpty()){
-            throw new MissionException("Mission already exist");
-        }
+       ensureMissionNonExists(missionPostDto.getMissionName());
 
         MissionModel missionToBeSaved = ModelMappers.missionGetDtoToMissionModel(missionPostDto);
 
@@ -48,35 +45,37 @@ public class MissionService {
 
     public void editMission(MissionPostDto missionPostDto) {
 
-        Optional<MissionModel> missionExists = missionExistByName(missionPostDto.getMissionName());
-
-        if(missionExists.isEmpty())
-            throw new MissionException("Mission not exists");
+        MissionModel missionModel = ensureMissionExistsByName(missionPostDto.getMissionName());
 
         MissionModel missionToBeSaved= ModelMappers.missionPostDtoToMissionModel(missionPostDto);
-        missionToBeSaved.setId(missionExists.get().getId());
+        missionToBeSaved.setId(missionModel.getId());
 
         missionRepository.save(missionToBeSaved);
     }
 
     public void deleteMission(MissionDeleteDto missionDeleteDto) {
-        Optional<MissionModel> missionExists = missionExistByName(missionDeleteDto.getMissionName());
 
-        if(missionExists.isEmpty())
-            throw new MissionException("Mission not exists");
+        MissionModel missionModel = ensureMissionExistsByName(missionDeleteDto.getMissionName());
 
-        missionRepository.delete(missionExists.get());
+        missionRepository.delete(missionModel);
     }
 
 
+    public MissionModel ensureMissionExistsByName(String missionName) {
 
-    private Optional<MissionModel> missionExistByName(String mission_name){
+        Optional<MissionModel> missionExists = missionRepository.findByMissionName(missionName);
 
-        Optional<MissionModel> missionExists = missionRepository.findByMissionName(mission_name);
+        if (missionExists.isEmpty())
+            throw new MissionNotFoundException("Mission not exists");
 
-        if(missionExists.isEmpty())
-            throw new MissionException("Mission not exists");
+        return missionExists.get();
+    }
 
-        return missionExists;
+    public void ensureMissionNonExists(String missionName){
+
+        Optional<MissionModel> missionExists = missionRepository.findByMissionName(missionName);
+
+        if(missionExists.isPresent())
+            throw new MissionAlreadyException("Mission already exists");
     }
 }

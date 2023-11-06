@@ -1,6 +1,8 @@
 package com.fredyhg.destiny2jobs.services;
 
-import com.fredyhg.destiny2jobs.exceptions.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserAlreadyExistsException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserNotFoundException;
 import com.fredyhg.destiny2jobs.models.AuthenticationResponse;
 import com.fredyhg.destiny2jobs.models.UserModel;
 import com.fredyhg.destiny2jobs.models.dtos.user.UserGetDto;
@@ -70,37 +72,6 @@ public class UserService {
         userRepository.deleteById(uuid);
     }
 
-
-    private void checkIfEmailIsAlreadyRegistered(final String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
-            throw new UserException("Email already registered");
-        });
-    }
-
-    private void checkIfIdIsAlreadyRegistered(final UUID id) {
-        userRepository.findById(id).ifPresent(user -> {
-            throw new UserException("Email already registered");
-        });
-    }
-
-    private UserModel ensureEmailExists(final String email) {
-        Optional<UserModel> userExist = userRepository.findByEmail(email);
-
-        if(userExist.isEmpty())
-            throw new UserException("Email not found");
-
-        return userExist.get();
-    }
-
-    private void ensureIdExists(final UUID id) {
-        if(userRepository.findById(id).isEmpty())
-            throw new UserException("User not found");
-
-    }
-
-
-
-
     public void saveUserToken(UserModel user, String jwtToken) {
         var token = Token.builder()
                 .user(user)
@@ -120,17 +91,16 @@ public class UserService {
     public UserModel userExistsByToken(HttpServletRequest request){
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
             throw new UserException("Invalid Token");
-        }
+
 
         String accountEmail = jwtService.extractUsername(authHeader.substring(7));
 
         Optional<UserModel> accountExists = userRepository.findByEmail(accountEmail);
 
-        if(accountExists.isEmpty()) {
-            throw new UserException("User not exists");
-        }
+        if(accountExists.isEmpty())
+            throw new UserNotFoundException("User not exists");
 
         return accountExists.get();
     }
@@ -139,18 +109,43 @@ public class UserService {
 
         Optional<UserModel> userByEmail = userRepository.findByEmail(email);
 
-        if(userByEmail.isPresent()){
-            throw new UserException("Email already registered");
-        }
+        if(userByEmail.isPresent())
+            throw new UserAlreadyExistsException("Email already registered");
 
     }
 
     public void isDiscordAvailable(String discord) {
         Optional<UserModel> userByDiscord = userRepository.findByDiscordName(discord);
 
-        if(userByDiscord.isPresent()){
-            throw new UserException("Discord already registered");
-        }
+        if(userByDiscord.isPresent())
+            throw new UserAlreadyExistsException("Discord already registered");
+
+    }
+
+    private void checkIfEmailIsAlreadyRegistered(final String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            throw new UserAlreadyExistsException("Email already registered");
+        });
+    }
+
+    private void checkIfIdIsAlreadyRegistered(final UUID id) {
+        userRepository.findById(id).ifPresent(user -> {
+            throw new UserAlreadyExistsException("Email already registered");
+        });
+    }
+
+    private UserModel ensureEmailExists(final String email) {
+        Optional<UserModel> userExist = userRepository.findByEmail(email);
+
+        if(userExist.isEmpty())
+            throw new UserNotFoundException("Email not found");
+
+        return userExist.get();
+    }
+
+    private void ensureIdExists(final UUID id) {
+        if(userRepository.findById(id).isEmpty())
+            throw new UserNotFoundException("User not found");
 
     }
 }

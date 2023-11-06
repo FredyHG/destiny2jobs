@@ -1,11 +1,12 @@
 package com.fredyhg.destiny2jobs.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fredyhg.destiny2jobs.exceptions.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserException;
 import com.fredyhg.destiny2jobs.models.AuthenticationResponse;
 import com.fredyhg.destiny2jobs.models.UserModel;
 import com.fredyhg.destiny2jobs.models.dtos.auth.AuthenticationDto;
 import com.fredyhg.destiny2jobs.repositories.UserRepository;
+import com.fredyhg.destiny2jobs.security.token.Token;
 import com.fredyhg.destiny2jobs.security.token.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -43,13 +45,13 @@ public class AuthService {
                 )
         );
 
-        var usuario = userRepository.findByEmail(request.getEmail())
+        UserModel user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
 
-        var jwtToken = jwtService.generateToken(usuario);
-        var refreshToken = jwtService.generatedRefreshToken(usuario);
-        revokeAllUserTokens(usuario);
-        this.userService.saveUserToken(usuario, jwtToken);
+        String jwtToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generatedRefreshToken(user);
+        revokeAllUserTokens(user);
+        this.userService.saveUserToken(user, jwtToken);
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
@@ -58,7 +60,7 @@ public class AuthService {
     }
 
     private void revokeAllUserTokens(UserModel user){
-        var validAccountTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        List<Token> validAccountTokens = tokenRepository.findAllValidTokenByUser(user.getId());
 
         if(validAccountTokens.isEmpty()) return;
 
@@ -83,14 +85,14 @@ public class AuthService {
         if(accountEmail == null) throw new UserException("Error to parse email from token");
 
 
-        var account = this.userService.findByEmail(accountEmail);
+        UserModel account = this.userService.findByEmail(accountEmail);
 
         if(jwtService.isTokenValid(refreshToken, account)){
-            var accessToken = jwtService.generateToken(account);
+            String accessToken = jwtService.generateToken(account);
             revokeAllUserTokens(account);
             this.userService.saveUserToken(account, accessToken);
 
-            var authResponse = AuthenticationResponse
+            AuthenticationResponse authResponse = AuthenticationResponse
                     .builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -99,7 +101,7 @@ public class AuthService {
             try {
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             } catch (IOException ex) {
-                throw new InternalAuthenticationServiceException("Error");
+                throw new InternalAuthenticationServiceException("Error to parse token");
             }
         }
 
