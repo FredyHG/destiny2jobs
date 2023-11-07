@@ -7,11 +7,12 @@ import com.fredyhg.destiny2jobs.services.CustomPackageService;
 import com.fredyhg.destiny2jobs.utils.models.ResponseMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 
@@ -22,24 +23,26 @@ public class CustomPackageControllerImpl implements CustomPackageController {
 
     private final CustomPackageService customPackageService;
 
-    @PostMapping
+    @PostMapping("/create")
     @Override
     public ResponseEntity<ResponseMessage> createCustomPackage(@RequestBody CustomPackagePostDto customPackagePostDto,
                                                                HttpServletRequest request){
+
         customPackageService.createCustomPackage(customPackagePostDto, request);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseMessage("Package created successfully"));
     }
 
     @GetMapping("/all")
     @Override
-    public ResponseEntity<List<CustomPackageResponse>> findAll(){
-        return ResponseEntity.status(HttpStatus.OK).body(customPackageService.findAllPackage());
+    public ResponseEntity<Page<CustomPackageResponse>> findAll(Pageable pageable){
+        return ResponseEntity.status(HttpStatus.OK).body(customPackageService.findAllPackage(pageable));
     }
 
     @GetMapping("/wait-worker")
     @Override
-    public ResponseEntity<List<CustomPackageResponse>> findAllCustomPackagePendingWorker(){
-        return ResponseEntity.status(HttpStatus.OK).body(customPackageService.findAllCustomPackagePendingWorker());
+    public ResponseEntity<Page<CustomPackageResponse>> findAllCustomPackagePendingWorker(Pageable pageable){
+        return ResponseEntity.status(HttpStatus.OK).body(customPackageService.findAllCustomPackagePendingWorker(pageable));
     }
 
     @PostMapping("/accept-service")
@@ -48,6 +51,7 @@ public class CustomPackageControllerImpl implements CustomPackageController {
                                                           @RequestParam(name = "packageId")UUID packageID){
 
         customPackageService.accept_service(request, packageID);
+
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Service accept successfully"));
     }
 
@@ -61,7 +65,7 @@ public class CustomPackageControllerImpl implements CustomPackageController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new ResponseMessage("Package finished successfully"));
     }
 
-    @DeleteMapping("/close-service")
+    @PostMapping("/close-service")
     @Override
     public ResponseEntity<ResponseMessage> close_service(HttpServletRequest request,
                                                          @RequestParam(name = "packageId")UUID packageID){

@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -30,14 +31,14 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers(HttpMethod.GET, "api/user/data").hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(HttpMethod.POST, "api/mission").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**"
+                                , "/api/user/isEmailAvailable", "/api/user/isDiscordAvailable").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/auth/authenticate", "/api/auth/refresh-token", "/api/user/create").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/package/close-service").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/api/package/create").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/package/wait-worker").hasAnyRole("ADMIN", "WORKER")
-                        .requestMatchers(HttpMethod.POST, "/api/package").hasAnyRole("ADMIN", "USER")
-                        .requestMatchers(HttpMethod.POST, "/api/package/accept-service").hasAnyRole("ADMIN", "WORKER")
-                        .requestMatchers(HttpMethod.POST, "/api/auth/authenticate").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/user").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/package/accept-service", "api/package/finish-service").hasAnyRole("ADMIN", "WORKER")
+                        .requestMatchers(HttpMethod.GET, "/api/user/data").hasAnyRole("ADMIN", "WORKER", "USER")
                         .anyRequest().hasRole("ADMIN")
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

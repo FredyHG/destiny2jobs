@@ -25,19 +25,19 @@ public class UserControllerImpl implements UserController {
 
     private final UserService userService;
 
-    @PostMapping
+    @PostMapping("/create")
     @Override
     public ResponseEntity<AuthenticationResponse> createUser(@RequestBody UserPostDto user){
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
     }
 
-    @GetMapping
+    @GetMapping("/all")
     @Override
     public ResponseEntity<Page<UserGetDto>> listAllUsers(Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.listAllUsers(pageable));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete")
     @Override
     public ResponseEntity<ResponseMessage> deleteUser(@RequestParam(name = "id") UUID uuid) {
         userService.deleteById(uuid);

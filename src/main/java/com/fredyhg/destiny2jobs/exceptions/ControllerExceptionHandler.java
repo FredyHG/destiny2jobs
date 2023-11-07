@@ -7,10 +7,7 @@ import com.fredyhg.destiny2jobs.exceptions.mission.CustomPackageAlreadyAccepted;
 import com.fredyhg.destiny2jobs.exceptions.mission.MissionAlreadyException;
 import com.fredyhg.destiny2jobs.exceptions.mission.MissionException;
 import com.fredyhg.destiny2jobs.exceptions.mission.MissionNotFoundException;
-import com.fredyhg.destiny2jobs.exceptions.user.UserAlreadyExistsException;
-import com.fredyhg.destiny2jobs.exceptions.user.UserException;
-import com.fredyhg.destiny2jobs.exceptions.user.UserNotAllowedException;
-import com.fredyhg.destiny2jobs.exceptions.user.UserNotFoundException;
+import com.fredyhg.destiny2jobs.exceptions.user.*;
 import com.fredyhg.destiny2jobs.utils.models.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -90,9 +87,21 @@ public class ControllerExceptionHandler {
         return createNewErrorMessage(ex, request, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(WorkerNotAllowedException.class)
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    public ErrorMessage workerNotAllowedException(Exception ex, WebRequest request){
+        return createNewErrorMessage(ex, request, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(CustomPackageAlreadyAccepted.class)
     @ResponseStatus(value = HttpStatus.CONFLICT)
     public ErrorMessage customPackageAlreadyAccepted(Exception ex, WebRequest request){
+        return createNewErrorMessage(ex, request, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    public ErrorMessage insufficientBalanceException(Exception ex, WebRequest request){
         return createNewErrorMessage(ex, request, HttpStatus.CONFLICT);
     }
 

@@ -21,7 +21,7 @@ public class MissionControllerImpl implements MissionController {
 
     private final MissionService missionService;
 
-    @PostMapping
+    @PostMapping("/create")
     @Override
     public ResponseEntity<ResponseMessage> createMission(@Valid @RequestBody MissionPostDto missionPostDto){
         missionService.createMission(missionPostDto);
@@ -29,7 +29,7 @@ public class MissionControllerImpl implements MissionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseMessage("Mission created successfully"));
     }
 
-    @GetMapping
+    @GetMapping("/all")
     @Override
     public ResponseEntity<Page<MissionGetDto>> getAllMissions(Pageable pageable){
         return ResponseEntity.status(HttpStatus.OK).body(missionService.getAllMissions(pageable));
@@ -43,7 +43,7 @@ public class MissionControllerImpl implements MissionController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Mission edited successfully"));
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete")
     @Override
     public ResponseEntity<ResponseMessage> deleteMission(@RequestBody MissionDeleteDto missionDeleteDto){
         missionService.deleteMission(missionDeleteDto);

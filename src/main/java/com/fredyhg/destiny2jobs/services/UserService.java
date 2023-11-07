@@ -1,5 +1,6 @@
 package com.fredyhg.destiny2jobs.services;
 
+import com.fredyhg.destiny2jobs.exceptions.user.InsufficientBalanceException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserAlreadyExistsException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserNotFoundException;
@@ -83,6 +84,14 @@ public class UserService {
         tokenRepository.save(token);
     }
 
+    public void debitBalance(UserModel user, double value){
+
+        if(user.getBalance() < value) throw new InsufficientBalanceException("User does not have balance");
+
+        user.setBalance(user.getBalance() - value);
+
+        userRepository.save(user);
+    }
 
     public UserGetDto getCurrentUserData(HttpServletRequest request, HttpServletResponse response) {
         return ModelMappers.userModelToUserGetDto(userExistsByToken(request));
@@ -91,16 +100,13 @@ public class UserService {
     public UserModel userExistsByToken(HttpServletRequest request){
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new UserException("Invalid Token");
-
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) throw new UserException("Invalid Token");
 
         String accountEmail = jwtService.extractUsername(authHeader.substring(7));
 
         Optional<UserModel> accountExists = userRepository.findByEmail(accountEmail);
 
-        if(accountExists.isEmpty())
-            throw new UserNotFoundException("User not exists");
+        if(accountExists.isEmpty()) throw new UserNotFoundException("User not exists");
 
         return accountExists.get();
     }
@@ -109,16 +115,14 @@ public class UserService {
 
         Optional<UserModel> userByEmail = userRepository.findByEmail(email);
 
-        if(userByEmail.isPresent())
-            throw new UserAlreadyExistsException("Email already registered");
+        if(userByEmail.isPresent()) throw new UserAlreadyExistsException("Email already registered");
 
     }
 
     public void isDiscordAvailable(String discord) {
         Optional<UserModel> userByDiscord = userRepository.findByDiscordName(discord);
 
-        if(userByDiscord.isPresent())
-            throw new UserAlreadyExistsException("Discord already registered");
+        if(userByDiscord.isPresent()) throw new UserAlreadyExistsException("Discord already registered");
 
     }
 
@@ -137,15 +141,12 @@ public class UserService {
     private UserModel ensureEmailExists(final String email) {
         Optional<UserModel> userExist = userRepository.findByEmail(email);
 
-        if(userExist.isEmpty())
-            throw new UserNotFoundException("Email not found");
+        if(userExist.isEmpty()) throw new UserNotFoundException("Email not found");
 
         return userExist.get();
     }
 
     private void ensureIdExists(final UUID id) {
-        if(userRepository.findById(id).isEmpty())
-            throw new UserNotFoundException("User not found");
-
+        if(userRepository.findById(id).isEmpty()) throw new UserNotFoundException("User not found");
     }
 }

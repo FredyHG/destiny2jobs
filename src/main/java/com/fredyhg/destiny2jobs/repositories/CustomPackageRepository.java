@@ -2,6 +2,8 @@ package com.fredyhg.destiny2jobs.repositories;
 
 import com.fredyhg.destiny2jobs.models.CustomPackageModel;
 import com.fredyhg.destiny2jobs.models.UserModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,7 +16,7 @@ import java.util.UUID;
 public interface CustomPackageRepository extends JpaRepository<CustomPackageModel, UUID> {
 
     @Query(value = "SELECT e FROM CustomPackageModel e WHERE e.status = 'WAIT_FOR_WORKER'")
-    List<CustomPackageModel> findAllWhereStatusWaitForWorker();
+    Page<CustomPackageModel> findAllWhereStatusWaitForWorker(Pageable pageable);
 
     @Query(value = "SELECT e FROM CustomPackageModel e WHERE e.status = 'STARTED'")
     List<CustomPackageModel> findAllWhereStatusStarted();

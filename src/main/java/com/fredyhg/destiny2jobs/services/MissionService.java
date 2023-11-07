@@ -36,11 +36,11 @@ public class MissionService {
 
         Page<MissionModel> allMissionModel = missionRepository.findAll(pageable);
 
-        List<MissionGetDto> missionsDtos = allMissionModel.stream()
+        List<MissionGetDto> listOfMissionsDto = allMissionModel.stream()
                 .map(ModelMappers::missionModelToMissionGetDto)
                 .toList();
 
-        return new PageImpl<>(missionsDtos);
+        return new PageImpl<>(listOfMissionsDto);
     }
 
     public void editMission(MissionPostDto missionPostDto) {
