@@ -1,6 +1,8 @@
 package com.fredyhg.destiny2jobs.services;
 
+import com.fredyhg.destiny2jobs.exceptions.user.UserAlreadyExistsException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserException;
+import com.fredyhg.destiny2jobs.exceptions.user.UserNotFoundException;
 import com.fredyhg.destiny2jobs.models.UserModel;
 import com.fredyhg.destiny2jobs.models.dtos.user.UserGetDto;
 import com.fredyhg.destiny2jobs.models.dtos.user.UserPostDto;
@@ -56,7 +58,7 @@ class UserServiceTest {
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(new UserModel()));
 
 
-        assertThrows(UserException.class, () -> {
+        assertThrows(UserAlreadyExistsException.class, () -> {
             userService.createUser(userDto);
         });
     }
@@ -106,7 +108,7 @@ class UserServiceTest {
 
         when(userRepository.findById(uuid)).thenReturn(Optional.empty());
 
-        assertThrows(UserException.class, () -> userService.deleteById(uuid));
+        assertThrows(UserNotFoundException.class, () -> userService.deleteById(uuid));
     }
 
     @Test
@@ -146,7 +148,7 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(UserCreator.createValidUserModel()));
 
-        UserException exception = assertThrows(UserException.class, () -> userService.isEmailAvailable(email));
+        UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> userService.isEmailAvailable(email));
         assertEquals("Email already registered", exception.getMessage());
     }
 
@@ -165,7 +167,7 @@ class UserServiceTest {
 
         when(userRepository.findByDiscordName(discord)).thenReturn(Optional.of(UserCreator.createValidUserModel()));
 
-        UserException exception = assertThrows(UserException.class, () -> userService.isDiscordAvailable(discord));
+        UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> userService.isDiscordAvailable(discord));
         assertEquals("Discord already registered", exception.getMessage());
     }
 }

@@ -1,5 +1,6 @@
 package com.fredyhg.destiny2jobs.models;
 
+import com.fredyhg.destiny2jobs.enums.Role;
 import com.fredyhg.destiny2jobs.enums.ServiceStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -47,5 +48,8 @@ public class CustomPackageModel {
     @Enumerated(EnumType.STRING)
     public ServiceStatus status;
 
+    public boolean isValidStatusForFinishing(CustomPackageModel customPackageModel){
+        return customPackageModel.getStatus() == ServiceStatus.STARTED;
+    }
 
 }

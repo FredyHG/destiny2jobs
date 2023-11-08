@@ -5,7 +5,6 @@ import com.fredyhg.destiny2jobs.enums.ServiceStatus;
 import com.fredyhg.destiny2jobs.exceptions.customPackage.CustomPackageException;
 import com.fredyhg.destiny2jobs.exceptions.customPackage.CustomPackageNotFoundException;
 import com.fredyhg.destiny2jobs.exceptions.mission.CustomPackageAlreadyAccepted;
-import com.fredyhg.destiny2jobs.exceptions.user.InsufficientBalanceException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserException;
 import com.fredyhg.destiny2jobs.exceptions.user.UserNotAllowedException;
 import com.fredyhg.destiny2jobs.exceptions.user.WorkerNotAllowedException;
@@ -113,9 +112,11 @@ public class CustomPackageService {
 
         UserModel worker = userService.userExistsByToken(request);
 
-        if(worker.getRole() == Role.ROLE_USER) throw new CustomPackageException("User does not have permission to close a package");
+        if(!worker.hasPermissionToClosePackage(worker)) throw new CustomPackageException("User does not have permission to close a package");
 
-        if(customPackageModel.getWorker() != worker) throw new WorkerNotAllowedException("You are not allowed to finish someone else's package");
+        if(!customPackageModel.getWorker().isWorkerAllowedToFinish(worker)) throw new WorkerNotAllowedException("You are not allowed to finish someone else's package");
+
+        if(!customPackageModel.isValidStatusForFinishing(customPackageModel)) throw new CustomPackageException("Invalid package status for finishing the service");
 
         customPackageModel.setStatus(ServiceStatus.FINISH);
 
@@ -179,4 +180,6 @@ public class CustomPackageService {
 
         return packageExist.get();
     }
+
+
 }

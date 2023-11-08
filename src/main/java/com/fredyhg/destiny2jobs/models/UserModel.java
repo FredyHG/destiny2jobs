@@ -4,6 +4,7 @@ package com.fredyhg.destiny2jobs.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fredyhg.destiny2jobs.enums.Role;
+import com.fredyhg.destiny2jobs.enums.ServiceStatus;
 import com.fredyhg.destiny2jobs.security.token.Token;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -104,4 +105,14 @@ public class UserModel implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public boolean hasPermissionToClosePackage(UserModel userModel){
+        return userModel.getRole() != Role.ROLE_USER;
+    }
+
+    public boolean isWorkerAllowedToFinish(UserModel userModel){
+        return userModel == this;
+    }
+
+
 }
