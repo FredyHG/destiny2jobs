@@ -11,10 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
 
+
 public interface AuthController {
 
-
-    @Operation(summary = "Authentication user", description = "Anyone can make this request")
+    @Operation(summary = "Authentication user", description = "Anyone can make this request", tags = "AUTH")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "400", description = "User credentials error"),
@@ -22,7 +22,7 @@ public interface AuthController {
     })
     ResponseEntity<AuthenticationResponse> authenticate(AuthenticationDto authenticationDto);
 
-    @Operation(summary = "Authentication user", description = "Anyone can make this request")
+    @Operation(summary = "Authentication user", description = "Anyone can make this request", tags = "AUTH")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "400", description = "User credentials error"),

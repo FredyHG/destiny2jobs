@@ -15,6 +15,7 @@ import com.fredyhg.destiny2jobs.security.token.TokenType;
 import com.fredyhg.destiny2jobs.utils.ModelMappers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,7 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public AuthenticationResponse createUser(UserPostDto user) {
 
         checkIfEmailIsAlreadyRegistered(user.getEmail());
@@ -73,6 +75,7 @@ public class UserService {
         userRepository.deleteById(uuid);
     }
 
+    @Transactional
     public void saveUserToken(UserModel user, String jwtToken) {
         var token = Token.builder()
                 .user(user)

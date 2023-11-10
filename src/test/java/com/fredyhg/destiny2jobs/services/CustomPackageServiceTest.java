@@ -13,6 +13,7 @@ import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackageResponse;
 import com.fredyhg.destiny2jobs.models.dtos.mission.MissionsBaseDto;
 import com.fredyhg.destiny2jobs.repositories.CustomPackageRepository;
 import com.fredyhg.destiny2jobs.repositories.MissionRepository;
+import com.fredyhg.destiny2jobs.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.io.Serial;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,6 +45,9 @@ class CustomPackageServiceTest {
 
     @Mock
     private MissionRepository missionRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Test
     public void testCreateCustomPackage() {
@@ -163,20 +163,20 @@ class CustomPackageServiceTest {
 
         UserModel mockWorker = UserModel.builder()
                 .role(Role.ROLE_WORKER)
+                .balance(0.0)
                 .build();
 
         UUID packageId = UUID.randomUUID();
         HttpServletRequest request = mock(HttpServletRequest.class);
         CustomPackageModel customPackageModel = new CustomPackageModel();
+        customPackageModel.setPrice(2.0);
         customPackageModel.setStatus(ServiceStatus.STARTED);
         customPackageModel.setWorker(mockWorker);
-
-
 
         when(customPackageRepository.findById(packageId)).thenReturn(Optional.of(customPackageModel));
         when(userService.userExistsByToken(request)).thenReturn(mockWorker);
 
-        customPackageService.finish_service(request, packageId);
+        customPackageService.finishService(request, packageId);
 
         verify(customPackageRepository, times(1)).save(customPackageModel);
         assertEquals(ServiceStatus.FINISH, customPackageModel.getStatus());
@@ -194,11 +194,12 @@ class CustomPackageServiceTest {
         CustomPackageModel customPackageModel = new CustomPackageModel();
         customPackageModel.setStatus(ServiceStatus.WAIT_FOR_WORKER);
         customPackageModel.setWorker(mockUser);
+        customPackageModel.setPrice(2.0);
 
         when(customPackageRepository.findById(packageId)).thenReturn(Optional.of(customPackageModel));
         when(userService.userExistsByToken(request)).thenReturn(mockUser);
 
-        assertThrows(CustomPackageException.class, () -> customPackageService.finish_service(request, packageId));
+        assertThrows(CustomPackageException.class, () -> customPackageService.finishService(request, packageId));
         verify(customPackageRepository, never()).save(customPackageModel);
     }
 
@@ -219,7 +220,7 @@ class CustomPackageServiceTest {
         when(customPackageRepository.findById(packageId)).thenReturn(Optional.of(customPackageModel));
         when(userService.userExistsByToken(request)).thenReturn(mockUser);
 
-        assertThrows(CustomPackageException.class, () -> customPackageService.finish_service(request, packageId));
+        assertThrows(CustomPackageException.class, () -> customPackageService.finishService(request, packageId));
         verify(customPackageRepository, never()).save(customPackageModel);
     }
     @Test
@@ -231,7 +232,7 @@ class CustomPackageServiceTest {
         when(customPackageRepository.findById(packageId)).thenReturn(Optional.of(customPackageModel));
         when(userService.userExistsByToken(request)).thenReturn(new UserModel());
 
-        customPackageService.accept_service(request, packageId);
+        customPackageService.acceptService(request, packageId);
 
         verify(customPackageRepository, times(1)).save(customPackageModel);
         assertEquals(ServiceStatus.STARTED, customPackageModel.getStatus());
@@ -246,7 +247,7 @@ class CustomPackageServiceTest {
         customPackageModel.setWorker(new UserModel());
         when(customPackageRepository.findById(packageId)).thenReturn(Optional.of(customPackageModel));
 
-        assertThrows(CustomPackageAlreadyAccepted.class, () -> customPackageService.accept_service(request, packageId));
+        assertThrows(CustomPackageAlreadyAccepted.class, () -> customPackageService.acceptService(request, packageId));
         verify(customPackageRepository, never()).save(customPackageModel);
     }
 

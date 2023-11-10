@@ -8,6 +8,7 @@ import com.fredyhg.destiny2jobs.models.dtos.mission.MissionGetDto;
 import com.fredyhg.destiny2jobs.models.dtos.mission.MissionPostDto;
 import com.fredyhg.destiny2jobs.repositories.MissionRepository;
 import com.fredyhg.destiny2jobs.utils.ModelMappers;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,6 +24,7 @@ public class MissionService {
 
     private final MissionRepository missionRepository;
 
+    @Transactional
     public void createMission(MissionPostDto missionPostDto){
 
        ensureMissionNonExists(missionPostDto.getMissionName());
@@ -43,6 +45,7 @@ public class MissionService {
         return new PageImpl<>(listOfMissionsDto);
     }
 
+    @Transactional
     public void editMission(MissionPostDto missionPostDto) {
 
         MissionModel missionModel = ensureMissionExistsByName(missionPostDto.getMissionName());
@@ -53,6 +56,7 @@ public class MissionService {
         missionRepository.save(missionToBeSaved);
     }
 
+    @Transactional
     public void deleteMission(MissionDeleteDto missionDeleteDto) {
 
         MissionModel missionModel = ensureMissionExistsByName(missionDeleteDto.getMissionName());

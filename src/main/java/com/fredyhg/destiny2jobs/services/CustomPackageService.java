@@ -15,8 +15,10 @@ import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackagePostDto;
 import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackageResponse;
 import com.fredyhg.destiny2jobs.repositories.CustomPackageRepository;
 import com.fredyhg.destiny2jobs.repositories.MissionRepository;
+import com.fredyhg.destiny2jobs.repositories.UserRepository;
 import com.fredyhg.destiny2jobs.utils.ModelMappers;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,6 +38,8 @@ public class CustomPackageService {
     private final MissionRepository missionRepository;
 
     private final CustomPackageRepository customPackageRepository;
+
+    private final UserRepository userRepository;
 
     private final UserService userService;
 
@@ -61,20 +65,20 @@ public class CustomPackageService {
         return new PageImpl<>(listOfPackages);
     }
 
+    @Transactional
     public void createCustomPackage(CustomPackagePostDto customPackagePostDtos, HttpServletRequest request) {
 
         UserModel user = userService.userExistsByToken(request);
 
         Optional<CustomPackageModel> userHasPackagePending = customPackageRepository.findPendingPackage(user);
 
-        double calcTotalPriceMission = calcTotalPriceMission(customPackagePostDtos);
-
-        userService.debitBalance(user, calcTotalPriceMission);
-
         if(userHasPackagePending.isPresent()) throw new CustomPackageException("User already has a pending package");
 
         if(user.getRole() == Role.ROLE_WORKER) throw new UserException("Worker cannot create a package.");
 
+        double calcTotalPriceMission = calcTotalPriceMission(customPackagePostDtos);
+
+        userService.debitBalance(user, calcTotalPriceMission);
 
         List<MissionModel> listOfMissions = customPackagePostDtos.getMissions()
                 .stream()
@@ -92,7 +96,8 @@ public class CustomPackageService {
         customPackageRepository.save(customPackageToBeSaved);
     }
 
-    public void accept_service(HttpServletRequest request, UUID packageId) {
+    @Transactional
+    public void acceptService(HttpServletRequest request, UUID packageId) {
 
         CustomPackageModel customPackageModel = ensureCustomPackageModelExistsById(packageId);
 
@@ -106,25 +111,46 @@ public class CustomPackageService {
         customPackageRepository.save(customPackageModel);
     }
 
-    public void finish_service(HttpServletRequest request, UUID packageID) {
+    @Transactional
+    public void finishService(HttpServletRequest request, UUID packageID) {
 
         CustomPackageModel customPackageModel = ensureCustomPackageModelExistsById(packageID);
 
         UserModel worker = userService.userExistsByToken(request);
 
-        if(!worker.hasPermissionToClosePackage(worker)) throw new CustomPackageException("User does not have permission to close a package");
+        if(!worker.hasPermissionToClosePackage(worker))
+            throw new CustomPackageException("User does not have permission to close a package");
 
-        if(!customPackageModel.getWorker().isWorkerAllowedToFinish(worker)) throw new WorkerNotAllowedException("You are not allowed to finish someone else's package");
+        if(!customPackageModel.getWorker().isWorkerAllowedToFinish(worker))
+            throw new WorkerNotAllowedException("You are not allowed to finish someone else's package");
 
-        if(!customPackageModel.isValidStatusForFinishing(customPackageModel)) throw new CustomPackageException("Invalid package status for finishing the service");
+        if(!customPackageModel.isValidStatusForFinishing(customPackageModel))
+            throw new CustomPackageException("Invalid package status for finishing the service");
 
         customPackageModel.setStatus(ServiceStatus.FINISH);
 
-        customPackageRepository.save(customPackageModel);
+        worker.setBalance(worker.getBalance() + customPackageModel.getPrice());
 
+        userRepository.save(worker);
+
+        customPackageRepository.save(customPackageModel);
     }
 
-    public double calcTotalPriceMission(CustomPackagePostDto customPackagePostDto){
+    @Transactional
+    public void closeService(HttpServletRequest request, UUID packageID) {
+
+        CustomPackageModel customPackageModel = ensureCustomPackageModelExistsById(packageID);
+
+        UserModel user = userService.userExistsByToken(request);
+
+        if(user.getRole() == Role.ROLE_WORKER) throw new CustomPackageException("User does not have permission to close a package");
+
+        if(!customPackageModel.getUser().equals(user)) throw new UserNotAllowedException("You can't close someone else's package");
+
+        customPackageRepository.delete(customPackageModel);
+    }
+
+    private double calcTotalPriceMission(CustomPackagePostDto customPackagePostDto){
 
         Map<String, Double> missionPriceMap = missionRepository.findAll()
                 .stream()
@@ -157,19 +183,6 @@ public class CustomPackageService {
                     return missionTime * quantity;
                 })
                 .sum();
-    }
-
-    public void close_service(HttpServletRequest request, UUID packageID) {
-
-        CustomPackageModel customPackageModel = ensureCustomPackageModelExistsById(packageID);
-
-        UserModel user = userService.userExistsByToken(request);
-
-        if(user.getRole() == Role.ROLE_WORKER) throw new CustomPackageException("User does not have permission to close a package");
-
-        if(!customPackageModel.getUser().equals(user)) throw new UserNotAllowedException("You can't close someone else's package");
-
-        customPackageRepository.delete(customPackageModel);
     }
 
     public CustomPackageModel ensureCustomPackageModelExistsById(UUID id ){

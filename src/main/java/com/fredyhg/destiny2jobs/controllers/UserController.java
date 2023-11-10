@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public interface UserController {
 
-    @Operation(summary = "Create new account", description = "Anyone can make this request.")
+    @Operation(summary = "Create new account", description = "Anyone can make this request.", tags = {"USER", "ADMIN"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Account created successfully"),
             @ApiResponse(responseCode = "409", description = "Email already exists"),
@@ -48,14 +48,14 @@ public interface UserController {
     })
     ResponseEntity<UserGetDto> getCurrentUserData(HttpServletRequest request, HttpServletResponse response);
 
-    @Operation(summary = "Check if email is available to create account")
+    @Operation(summary = "Check if email is available to create account", tags = "ALL")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Email available"),
             @ApiResponse(responseCode = "401", description = "Email already registered")
     })
     ResponseEntity<ResponseMessage> isEmailAvailable(String email);
 
-    @Operation(summary = "Check if discord is available to create account")
+    @Operation(summary = "Check if discord is available to create account", tags = "ALL")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Discord available"),
             @ApiResponse(responseCode = "401", description = "Discord already registered")

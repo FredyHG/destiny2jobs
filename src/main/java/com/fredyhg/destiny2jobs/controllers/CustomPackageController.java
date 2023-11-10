@@ -4,8 +4,10 @@ import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackagePostDto;
 import com.fredyhg.destiny2jobs.models.dtos.custompackage.CustomPackageResponse;
 import com.fredyhg.destiny2jobs.utils.models.ResponseMessage;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +19,7 @@ import java.util.UUID;
 public interface CustomPackageController {
 
 
-    @Operation(summary = "Create new account", description = "To perform this request you need role ADMIN or USER, WORKERS does not perform this request", tags = {"USER", "ADMIN"})
+    @Operation(summary = "Create new account", description = "To perform this request you need role ADMIN or USER", tags = {"USER", "ADMIN"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Custom Package created successfully"),
             @ApiResponse(responseCode = "409", description = "Package already exists or User does not have balance"),
@@ -40,19 +42,23 @@ public interface CustomPackageController {
             @ApiResponse(responseCode = "200", description = "Custom package listed successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request")
     })
+    @SecurityRequirement(name = "bearer")
     ResponseEntity<Page<CustomPackageResponse>> findAllCustomPackagePendingWorker(Pageable pageable);
 
-    @Operation(summary = "To perform this request you need role WORKER or ADMIN, USERS does not perform this request", tags = {"ADMIN", "WORKER"})
+    @Operation(summary = "To perform this request you need role WORKER or ADMIN", tags = {"ADMIN", "WORKER"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Custom package not found or User not found"),
             @ApiResponse(responseCode = "409", description = "This package has already been accepted by another worker"),
             @ApiResponse(responseCode = "401", description = "Unauthorized request"),
-            @ApiResponse(responseCode = "200", description = "Package accept successfully")
+            @ApiResponse(responseCode = "200", description = "Package accept successfully"),
+            @ApiResponse(responseCode = "403", description = "Unauthorized request")
+
     })
-    ResponseEntity<ResponseMessage> accept_service(HttpServletRequest request, UUID packageID);
+    @SecurityRequirement(name = "bearer")
+    ResponseEntity<ResponseMessage> accept_service(HttpServletRequest request, @Parameter(name = "packageId", example = "70da68c0-582c-4862-beab-d3b2f630eed0") UUID packageID);
 
 
-    @Operation(summary = "To perform this request you need role WORKER or ADMIN, USERS does not perform this request", tags = {"ADMIN", "WORKER"})
+    @Operation(summary = "To perform this request you need role WORKER or ADMIN", tags = {"ADMIN", "WORKER"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Custom package not found or User not found"),
             @ApiResponse(responseCode = "409", description = "This package has already finished, or Worker not allowed"),
@@ -62,7 +68,7 @@ public interface CustomPackageController {
     })
     ResponseEntity<ResponseMessage> finish_service(HttpServletRequest request, UUID packageID);
 
-    @Operation(summary = "To perform this request you need role WORKER or ADMIN, USERS does not perform this request", tags = {"ADMIN", "WORKER"})
+    @Operation(summary = "To perform this request you need role WORKER or ADMIN", tags = {"ADMIN", "WORKER"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "Custom package not found or User not found"),
             @ApiResponse(responseCode = "409", description = "This package has already closed, or User not allowed"),

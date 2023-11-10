@@ -50,7 +50,7 @@ public class CustomPackageControllerImpl implements CustomPackageController {
     public ResponseEntity<ResponseMessage> accept_service(HttpServletRequest request,
                                                           @RequestParam(name = "packageId")UUID packageID){
 
-        customPackageService.accept_service(request, packageID);
+        customPackageService.acceptService(request, packageID);
 
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Service accept successfully"));
     }
@@ -60,7 +60,7 @@ public class CustomPackageControllerImpl implements CustomPackageController {
     public ResponseEntity<ResponseMessage> finish_service(HttpServletRequest request,
                                                           @RequestParam(name = "packageId")UUID packageID){
 
-        customPackageService.finish_service(request, packageID);
+        customPackageService.finishService(request, packageID);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new ResponseMessage("Package finished successfully"));
     }
@@ -70,7 +70,7 @@ public class CustomPackageControllerImpl implements CustomPackageController {
     public ResponseEntity<ResponseMessage> close_service(HttpServletRequest request,
                                                          @RequestParam(name = "packageId")UUID packageID){
 
-        customPackageService.close_service(request, packageID);
+        customPackageService.closeService(request, packageID);
 
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("This package deleted successfully and deleted"));
     }
